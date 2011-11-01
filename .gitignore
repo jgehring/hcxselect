@@ -1,0 +1,4 @@
+*.[oa]
+.*.swp
+examples/select
+src/lexer.h
