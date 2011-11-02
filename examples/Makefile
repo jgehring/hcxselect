@@ -14,7 +14,7 @@ all: select
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(DEFINES) -c -o $@ $<
 
 select: select.o ../src/libhcxselect.a
-	$(CXX) $(LDFLAGS) $(LIBS) select.o -o $@
+	$(CXX) $(LDFLAGS) select.o $(LIBS) -o $@
 
 clean:
 	$(RM) *.o
