@@ -196,7 +196,7 @@ struct Attribute : SelectorFn
 
 	bool match(const NodeIt &it) const
 	{
-		it->parseAttributes();
+		if (it->attributes().empty()) it->parseAttributes();
 		return it->attribute(attr).first;
 	}
 
@@ -211,7 +211,7 @@ struct AttributeValue : SelectorFn
 
 	bool match(const NodeIt &it) const
 	{
-		it->parseAttributes();
+		if (it->attributes().empty()) it->parseAttributes();
 		std::string str(it->attribute(attr).second);
 		switch (c) {
 			case '=': return !strcasecmp(str, value);
