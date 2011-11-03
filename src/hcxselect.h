@@ -33,7 +33,7 @@
 
 #include <exception>
 #include <string>
-#include <vector>
+#include <set>
 
 #include <htmlcxx/html/Node.h>
 #include <htmlcxx/html/tree.h>
@@ -42,7 +42,7 @@
 namespace hcxselect
 {
 
-typedef std::vector<tree_node_<htmlcxx::HTML::Node> *> NodeVector;
+typedef std::set<tree_node_<htmlcxx::HTML::Node> *> NodeSet;
 
 /*!
  * Applies a CSS selector expression to a set of nodes.
@@ -51,18 +51,18 @@ typedef std::vector<tree_node_<htmlcxx::HTML::Node> *> NodeVector;
  * \param expr The CSS selector expression
  * \returns A set of nodes that matches the given selector
  */
-NodeVector select(const NodeVector &nodes, const std::string &expr);
+NodeSet select(const NodeSet &nodes, const std::string &expr);
 
 
 /*!
  * Convenient wrapper class for select().
  */
-class Selector : public NodeVector
+class Selector : public NodeSet
 {
 public:
 	Selector();
 	Selector(const tree<htmlcxx::HTML::Node> &tree, const std::string &expr = std::string());
-	Selector(const NodeVector &nodes, const std::string &expr = std::string());
+	Selector(const NodeSet &nodes, const std::string &expr = std::string());
 
 	Selector select(const std::string &expr);
 };

@@ -141,8 +141,8 @@ int main(int argc, char **argv)
 			return 1;
 		}
 
-		for (size_t j = 0; j < s.size(); j++) {
-			ss << source.substr(s[j]->data.offset(), s[j]->data.length());
+		for (hcxselect::Selector::const_iterator it = s.begin(); it != s.end(); ++it) {
+			ss << source.substr((*it)->data.offset(), (*it)->data.length());
 		}
 
 		if (s.size() != (size_t)vectors[i].n) {

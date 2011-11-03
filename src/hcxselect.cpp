@@ -30,6 +30,7 @@
 
 #include <stack>
 #include <sstream>
+#include <vector>
 
 #include "hcxselect.h"
 
@@ -559,22 +560,22 @@ std::vector<SelectorFn *> parse(const std::string &expr)
 }
 
 // Matches a set of nodes against a selector
-NodeVector match(const NodeVector &nodes, const SelectorFn *fn)
+NodeSet match(const NodeSet &nodes, const SelectorFn *fn)
 {
 	std::stack<tree<HTMLNode>::iterator> stack;
-	for (NodeVector::const_iterator it(nodes.begin()); it != nodes.end(); ++it) {
+	for (NodeSet::const_iterator it(nodes.begin()); it != nodes.end(); ++it) {
 		stack.push(tree<HTMLNode>::iterator(*it));
 	}
 
 	// Depth-first traversal using a stack
-	NodeVector result;
+	NodeSet result;
 	while (!stack.empty()) {
 		tree<HTMLNode>::iterator it = stack.top();
 		stack.pop();
 
 		// Match all selectors
 		if (fn->match(it)) {
-			result.push_back(it.node);
+			result.insert(it.node);
 			continue;
 		}
 
@@ -592,16 +593,16 @@ NodeVector match(const NodeVector &nodes, const SelectorFn *fn)
 
 
 // Applies a CSS selector expression to a set of nodes.
-NodeVector select(const NodeVector &nodes, const std::string &expr)
+NodeSet select(const NodeSet &nodes, const std::string &expr)
 {
 	// Parse expression
 	std::vector<SelectorFn *> fns = parse(expr);
 
-	NodeVector result;
+	NodeSet result;
 	std::vector<SelectorFn *>::const_iterator it;
 	for (it = fns.begin(); it != fns.end(); ++it) {
-		NodeVector v = match(nodes, *it);
-		result.insert(result.end(), v.begin(), v.end());
+		NodeSet v = match(nodes, *it);
+		result.insert(v.begin(), v.end());
 	}
 
 	delete_all(fns);
@@ -622,29 +623,29 @@ Selector::Selector()
  */
 Selector::Selector(const tree<HTMLNode> &tree, const std::string &expr)
 {
-	NodeVector v;
+	NodeSet v;
 	::tree<HTMLNode>::sibling_iterator it;
 	for (it = tree.begin(); it != tree.end(); ++it) {
-		v.push_back(it.node);
+		v.insert(it.node);
 	}
 
 	if (!expr.empty()) {
 		v = hcxselect::select(v, expr);
 	}
-	assign(v.begin(), v.end());
+	insert(v.begin(), v.end());
 }
 
 /*!
  * Constructs a selection from a set of nodes and optionally 
  * applies a selector.
  */
-Selector::Selector(const NodeVector &nodes, const std::string &expr)
+Selector::Selector(const NodeSet &nodes, const std::string &expr)
 {
 	if (!expr.empty()) {
-		NodeVector v = hcxselect::select(nodes, expr);
-		assign(v.begin(), v.end());
+		NodeSet v = hcxselect::select(nodes, expr);
+		insert(v.begin(), v.end());
 	} else {
-		assign(nodes.begin(), nodes.end());
+		insert(nodes.begin(), nodes.end());
 	}
 }
 
