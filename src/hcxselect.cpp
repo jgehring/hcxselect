@@ -37,8 +37,8 @@ extern "C" {
 	#include "lexer.h"
 }
 
-#define TRACE printf("%s: ", __FUNCTION__); printf
-//inline void TRACE(...) { }
+//#define TRACE printf("%s: ", __FUNCTION__); printf
+inline void TRACE(...) { }
 
 
 namespace hcxselect
@@ -401,6 +401,11 @@ SelectorFn *parseSimpleSequence(Lexer *l, int &token, std::string &s)
 
 				token = l->lex(&s);
 				if (token == S) token = l->lex(&s);
+				if (token == ']') {
+					fns.push_back(new Selectors::Attribute(a));
+					break;
+				}
+
 				int c = 0;
 				switch (token) {
 					case INCLUDES: c = '~'; break;
@@ -409,15 +414,13 @@ SelectorFn *parseSimpleSequence(Lexer *l, int &token, std::string &s)
 					case SUFFIXMATCH: c = '$'; break;
 					case SUBSTRINGMATCH: c = '*'; break;
 					case '=': c = '='; break;
-					case ']':
-						  fns.push_back(new Selectors::Attribute(a));
-						  break;
 					default: throw ParseException(l->pos, "Invalid character");
 				}
+				TRACE("got %d, %c\n", token, token);
 
 				token = l->lex(&s);
 				if (token == S) token = l->lex(&s);
-				if (token != STRING && token != IDENT) throw ParseException(l->pos); 
+				if (token != STRING && token != IDENT) throw ParseException(l->pos, "Token is neither string nor identifier"); 
 				std::string v = (token == STRING ? s.substr(1, s.length()-2) : s);
 
 				fns.push_back(new Selectors::AttributeValue(a, v, c));
