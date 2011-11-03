@@ -9,6 +9,20 @@ The "library" consists of a a header and a source file and is
 currently meant to be directly included in other software, as it
 provides no installation options.
 
+
+# Compliance
+
+hcxselect aims to comply with the Selectors Level 3 specification
+<http://www.w3.org/TR/selectors/>. However, a couple of browser-specific
+selectors are not implemented:
+
+	* pseudo-classes:
+	  :link, :visited, :hover, :active, :focus, :target, :lang,
+	  :enabled, :disabled, :checked, :indeterminate
+
+
+# License
+
 hcxselect licensed under 3-clause BSD license. However, please be
 aware that htmlcxx itself uses the GNU Lesser General Public License
 (LGPL) and uses tree.hh, which in turn is available under the GNU
