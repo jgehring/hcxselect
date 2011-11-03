@@ -1,4 +1,7 @@
 *.[oa]
+*.gcda
+*.gcno
+*.gcov
 .*.swp
 examples/select
 src/lexer.h
