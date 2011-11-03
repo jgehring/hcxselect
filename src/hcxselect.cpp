@@ -417,7 +417,8 @@ SelectorFn *parseSimpleSequence(Lexer *l, int &token, std::string &s)
 				break;
 			case '.':
 				token = l->lex(&s);
-				if (token != IDENT) throw ParseException(l->pos, "Identfier expected");
+				if (token != IDENT) throw ParseException(l->pos, "Identifier expected");
+				TRACE("%d: %s\n", token, s.c_str());
 				fns.push_back(new Selectors::AttributeValue("class", s, '~'));
 				break;
 			case '[': {
