@@ -54,12 +54,13 @@ const char *rawsource = \
 "  </p>"
 "  <p title=\"t2\" lang=\"en-gb\">Another one</p>"
 "  <span class=\"a bb c\">Multi-class span</span>"
+"  <a class=\"13\" href=\"http://example.com\">ref</a>"
 "</html>"
 ;
 
 struct tvec {
 	const char *s;
-	size_t n;
+	int n; // < 0: Syntax error expected
 	const char *t;
 } vectors[] = {
 	{"li,nonsense", 3, "<li>Another one</li><li>A list element</li><nonsense id=\"id1\">This is not real</nonsense>"},
@@ -95,6 +96,9 @@ struct tvec {
 	{"#foo", 0, ""},
 	{"#foo#id1", 0, ""},
 	{"#id1#id1", 1, "<nonsense id=\"id1\">This is not real</nonsense>"},
+	{".13", -1, ""},
+	{".\\13", 0, ""},
+	{".\\31 \\33", 1, "<a class=\"13\" href=\"http://example.com\">ref</a>"},
 };
 
 
@@ -107,10 +111,16 @@ int main(int argc, char **argv)
 	tree<htmlcxx::HTML::Node> dom = parser.parseTree(source);
 
 	for (size_t i = 0; i < sizeof(vectors) / sizeof(tvec); i++) {
+		stringstream ss;
 		hcxselect::Selector s(dom);
+
 		try {
 			s = s.select(vectors[i].s);
 		} catch (hcxselect::ParseException &ex) {
+			if (vectors[i].n < 0) {
+				goto pass;
+			}
+			cerr << endl;
 			cerr << "Parse error: '" << vectors[i].s << "': " << ex.what() << endl;
 			cerr << "              ";
 			for (int i = 1; i < ex.position(); i++) {
@@ -119,16 +129,23 @@ int main(int argc, char **argv)
 			cerr << "^" << endl;
 			return 1;
 		} catch (...) {
+			cerr << endl;
 			cerr << "Error parsing '" << vectors[i].s << "'" << endl;
 			return 1;
 		}
 
-		stringstream ss;
+		if (vectors[i].n < 0) {
+			cerr << endl;
+			cerr << i << " (" << vectors[i].s << ") failed: " <<
+				"Parse exception expected" << endl;
+			return 1;
+		}
+
 		for (size_t j = 0; j < s.size(); j++) {
 			ss << source.substr(s[j]->data.offset(), s[j]->data.length());
 		}
 
-		if (s.size() != vectors[i].n) {
+		if (s.size() != (size_t)vectors[i].n) {
 			cerr << endl;
 			cerr << i << " (" << vectors[i].s << ") failed: " <<
 				"Expected " << vectors[i].n << " results, got " <<
@@ -143,6 +160,7 @@ int main(int argc, char **argv)
 			return 1;
 		}
 
+pass:
 		cout << i << (i > 0 && i % 20 == 0 ? "\n" : " ");
 	}
 	cout << endl;

@@ -60,12 +60,39 @@ public:
 		yylex_destroy(yy);
 	}
 
+	void unescape(std::string *str)
+	{
+		size_t pos = 0;
+		while ((pos = str->find('\\', pos)) != std::string::npos) {
+			if ((*str)[pos+1] == '\\') {
+				str->replace(pos, 2, "");
+				continue;
+			}
+
+			// Un-escape UTF-8 codes, sometimes followed by space
+			size_t len = 1;
+			while (isdigit((*str)[pos+len])) ++len;
+			while (isspace((*str)[pos+len])) ++len;
+			if (len > 1) {
+				unsigned int x;
+				std::stringstream ss;
+				ss << std::hex << str->substr(pos+1, len-1);
+				ss >> x;
+				str->replace(pos, len, 1, x);
+			}
+			++pos;
+		}
+	}
+
 	inline int lex(std::string *text)
 	{
 		int token = yylex(yy);
 		pos += yyget_leng(yy);
 		if (token > 0) {
 			*text = yyget_text(yy);
+		}
+		if (token == IDENT) {
+			unescape(text);
 		}
 		return token;
 	}
