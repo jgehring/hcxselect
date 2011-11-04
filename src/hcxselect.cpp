@@ -171,9 +171,9 @@ struct SelectorFn
 // Universal selector (*)
 struct Universal : SelectorFn
 {
-	bool match(const NodeIt &) const
+	bool match(const NodeIt &it) const
 	{
-		return true;
+		return it->isTag();
 	}
 };
 
