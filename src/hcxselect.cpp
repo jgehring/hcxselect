@@ -213,7 +213,7 @@ struct AttributeValue : SelectorFn
 	bool match(const NodeIt &it) const
 	{
 		if (it->attributes().empty()) it->parseAttributes();
-		std::string str(it->attribute(attr).second);
+		const std::string &str = it->attribute(attr).second;
 		switch (c) {
 			case '=': return !strcasecmp(str, value);
 			case '^': return starts_with(str, value);
@@ -221,16 +221,17 @@ struct AttributeValue : SelectorFn
 			case '*': return (str.find(value) != std::string::npos);
 			case '|': return !(strcasecmp(str, value) && !starts_with(str, value + "-"));
 			case '~': {
-				std::vector<std::string> tokens;
-				std::istringstream iss(str);
-				std::copy(std::istream_iterator<std::string>(iss),
-						std::istream_iterator<std::string>(),
-						std::back_inserter<std::vector<std::string> >(tokens));
-				std::vector<std::string>::const_iterator it;
-				for (it = tokens.begin(); it != tokens.end(); ++it) {
-					if (!strcasecmp(*it, value)) {
+				// Split string by space and compare every part
+				const char *ptr = str.c_str(), *last = str.c_str();
+				const char *end = str.c_str() + str.length();
+				size_t l = value.length();
+				while (ptr < end) {
+					while (*ptr && !isspace(*ptr)) ++ptr;
+					if ((ptr - last) == l && !::strncasecmp(value.c_str(), last, l)) {
 						return true;
 					}
+					while (*ptr && isspace(*ptr)) ++ptr;
+					last = ptr;
 				}
 				return false;
 			}
