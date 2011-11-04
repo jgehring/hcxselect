@@ -593,10 +593,9 @@ NodeSet match(const NodeSet &nodes, const SelectorFn *fn)
 		tree<HTMLNode>::iterator it = stack.top();
 		stack.pop();
 
-		// Match all selectors
+		// Check if selector matches
 		if (fn->match(it)) {
 			result.insert(it.node);
-			continue;
 		}
 
 		// Inspect all child nodes of non-matching elements
