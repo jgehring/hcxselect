@@ -45,7 +45,7 @@ const char *rawsource = \
 "<html>"
 "  <ul>"
 "    <li>A list element</li>"
-"    <li>Another one</li>"
+"    <li n=\"2\">Another one</li>"
 "  </ul>"
 "  <p id=\"foobar\">This is a paragraph</p>"
 "  <nonsense id=\"id1\">This is not real</nonsense>"
@@ -72,9 +72,9 @@ struct tvec {
 	int n; // < 0: Syntax error expected
 	const char *t;
 } vectors[] = {
-	{"li,nonsense", 3, "<li></li>,<li></li>,<nonsense id=\"id1\"></nonsense>"}, // 1
+	{"li,nonsense", 3, "<li></li>,<li n=\"2\"></li>,<nonsense id=\"id1\"></nonsense>"}, // 1
 	{"nonsense", 1, "<nonsense id=\"id1\"></nonsense>"}, // 2
-	{"*", 14, "<html></html>,<ul></ul>,<li></li>,<li></li>,<p id=\"foobar\"></p>,<nonsense id=\"id1\"></nonsense>,<p title=\"title\"></p>,<span class=\"class1\" lang=\"en-fr\"></span>,<p title=\"t2\" lang=\"en-gb\"></p>,<span class=\"a bb c\"></span>,<div class=\"one.word\"></div>,<a class=\"13\" href=\"http://example.com\"></a>,<div class=\"span\"></div>,<table id=\"t\" class=\"\"></table>"}, // 3
+	{"*", 14, "<html></html>,<ul></ul>,<li></li>,<li n=\"2\"></li>,<p id=\"foobar\"></p>,<nonsense id=\"id1\"></nonsense>,<p title=\"title\"></p>,<span class=\"class1\" lang=\"en-fr\"></span>,<p title=\"t2\" lang=\"en-gb\"></p>,<span class=\"a bb c\"></span>,<div class=\"one.word\"></div>,<a class=\"13\" href=\"http://example.com\"></a>,<div class=\"span\"></div>,<table id=\"t\" class=\"\"></table>"}, // 3
 	{"*.class1", 1, "<span class=\"class1\" lang=\"en-fr\"></span>"}, // 3
 	{"#foobar", 1, "<p id=\"foobar\"></p>"}, // 4
 	{"p[title]", 2, "<p title=\"title\"></p>,<p title=\"t2\" lang=\"en-gb\"></p>"}, // 5
@@ -98,23 +98,31 @@ struct tvec {
 	{":not(.a).bb", 0, ""}, // 14c
 	{"span.bb:not(.a):not(.a)", 0, ""}, // 14e
 	{"#foo", 0, ""}, // 15
-	{"#foo#id1", 0, ""}, // 16
+	{"#foo#id1", 0, ""}, // 15b
+	{"#id1#id1", 1, "<nonsense id=\"id1\"></nonsense>"}, // 15b
 	{"*:root", 1, "<html></html>"}, // 27
 	{":root:first-child", 0, ""}, // 27b
 	{":root:last-child", 0, ""}, // 27b
 	{":root:only-child", 0, ""}, // 27b
-//	{":root:nth-child(1)", 0, ""}, // 27b
-//	{":root:nth-child(n)", 0, ""}, // 27b
+	{":root:nth-child(1)", 0, ""}, // 27b
+	{":root:nth-child(n)", 0, ""}, // 27b
 	{":root:first-of-type", 0, ""}, // 27b
 	{":root:last-of-type", 0, ""}, // 27b
 	{":root:only-of-type", 0, ""}, // 27b
-//	{":root:nth-of-type(1)", 0, ""}, // 27b
-//	{":root:nth-of-type(n)", 0, ""}, // 27b
-//	{":root:nth-last-of-type(1)", 0, ""}, // 27b
-//	{":root:nth-last-of-type(n)", 0, ""}, // 27b
+	{":root:nth-of-type(1)", 0, ""}, // 27b
+	{":root:nth-of-type(n)", 0, ""}, // 27b
+	{":root:nth-last-of-type(1)", 0, ""}, // 27b
+	{":root:nth-last-of-type(n)", 0, ""}, // 27b
 	{"* :root", 0, ""}, // 27c
 	{"* html", 0, ""}, // 27c
-	{"#id1#id1", 1, "<nonsense id=\"id1\"></nonsense>"}, // 16
+	{"li:nth-child(odd)", 1, "<li></li>"}, // 28
+	{"li:nth-child(even)", 1, "<li n=\"2\"></li>"}, // 28
+	{"p:nth-child(4)", 1, "<p title=\"title\"></p>"}, // 28
+	{"p:nth-child(20n+2)", 1, "<p id=\"foobar\"></p>"}, // 28
+	{"p:nth-child(-4)", -1, ""}, // 28
+	{"p:nth-child(2n-4)", -1, ""}, // 28
+	{"p:nth-child(2n)", 2, "<p id=\"foobar\"></p>,<p title=\"title\"></p>"}, // 28
+	{"a:nth-child(n+2)", 1, "<a class=\"13\" href=\"http://example.com\"></a>"}, // 28
 	{".13", -1, ""}, // 125, 175a
 	{".\\13", 0, ""}, // 126, 175b
 	{".\\31 \\33", 1, "<a class=\"13\" href=\"http://example.com\"></a>"}, // 175c

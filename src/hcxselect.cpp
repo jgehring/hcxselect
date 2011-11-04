@@ -41,16 +41,30 @@ extern "C" {
 //#define TRACE printf("%s: ", __FUNCTION__); printf
 inline void TRACE(...) { }
 
+#define ENSURE(c, s) \
+	if (!(c)) { throw ParseException(l->pos, s); }
+
 
 namespace hcxselect
 {
+
+namespace
+{
+
+// String to number
+template <class T> inline bool stoi(T *t, const std::string& s) {
+	std::istringstream iss(s);
+	return !(iss >> *t).fail();
+}
+
+}
 
 // Lexer for CSS selector grammar (wrapper for reentrant FLEX parser)
 class Lexer
 {
 public:
 	Lexer(const std::string &str)
-		: pos(0)
+		: pos(0), spos(0)
 	{
 		yylex_init(&yy);
 		yy_scan_string(str.c_str(), yy);
@@ -90,9 +104,12 @@ public:
 	inline int lex(std::string *text)
 	{
 		int token = yylex(yy);
-		pos += yyget_leng(yy);
+		spos += yyget_leng(yy);
 		if (token > 0) {
 			*text = yyget_text(yy);
+			pos = spos + 1 - text->length();
+		} else {
+			pos = spos;
 		}
 		if (token == IDENT) {
 			unescape(text);
@@ -101,7 +118,7 @@ public:
 	}
 
 	yyscan_t yy;
-	int pos;
+	int pos, spos;
 };
 
 // Anonymous namespace for local helpers
@@ -231,7 +248,7 @@ struct AttributeValue : SelectorFn
 				// Split string by space and compare every part
 				const char *ptr = str.c_str(), *last = str.c_str();
 				const char *end = str.c_str() + str.length();
-				size_t l = value.length();
+				int l = value.length();
 				while (ptr < end) {
 					while (*ptr && !isspace(*ptr)) ++ptr;
 					if ((ptr - last) == l && !::strncasecmp(value.c_str(), last, l)) {
@@ -255,7 +272,16 @@ struct AttributeValue : SelectorFn
 // Pseudo class or element
 struct Pseudo : SelectorFn
 {
-	Pseudo(const std::string &type) : type(type) { }
+	Pseudo(const std::string &type, int an = 0, int b = 0)
+		: type(type), an(an), b(b) { }
+
+	bool checkNum(int i) const 
+	{
+		if (an == 0) {
+			return (i == b);
+		}
+		return (((i - b) % an) == 0);
+	}
 
 	bool matchs(const NodeIt &it, const std::string &type) const
 	{
@@ -294,6 +320,44 @@ struct Pseudo : SelectorFn
 				return (it.node->first_child == NULL);
 			}
 			return (it->isComment() || it->length() == 0);
+		} else if (type == "nth-child") {
+			if (!hasParent(it)) return false;
+			int i = 1;
+			NodeIt jt(it.node->parent->first_child);
+			while (jt.node && it.node != jt.node) {
+				if (jt->isTag()) ++i;
+				jt = jt.node->next_sibling;
+			}
+			return checkNum(i);
+		} else if (type == "nth-last-child") {
+			if (!hasParent(it)) return false;
+			int i = 1;
+			NodeIt jt(it.node->parent->last_child);
+			while (jt.node && it.node != jt.node) {
+				if (jt->isTag()) ++i;
+				jt = jt.node->prev_sibling;
+			}
+			return checkNum(i);
+		} else if (type == "nth-of-type") {
+			if (!hasParent(it)) return false;
+			int i = 1;
+			NodeIt jt(it.node->parent->first_child);
+			while (jt.node && it.node != jt.node) {
+				if (jt->isTag() && strcasecmp(jt->tagName(), it->tagName())) ++i;
+				jt = jt.node->next_sibling;
+				++i;
+			}
+			return checkNum(i);
+		} else if (type == "nth-last-of-type") {
+			if (!hasParent(it)) return false;
+			int i = 1;
+			NodeIt jt(it.node->parent->last_child);
+			while (jt.node && it.node != jt.node) {
+				if (jt->isTag() && strcasecmp(jt->tagName(), it->tagName())) ++i;
+				jt = jt.node->prev_sibling;
+				++i;
+			}
+			return checkNum(i);
 		} else if (type == "text") {
 			return (!it->isTag() && !it->isComment());
 		} else if (type == "comment") {
@@ -313,6 +377,7 @@ struct Pseudo : SelectorFn
 	}
 
 	std::string type;
+	int an, b;
 };
 
 // Negation (:not)
@@ -435,74 +500,118 @@ SelectorFn *parseSimpleSequence(Lexer *l, int &token, std::string &s)
 	bool lex = true;
 	while (token) {
 		switch (token) {
-			case HASH:
-				fns.push_back(new Selectors::AttributeValue("id", s.substr(1)));
-				break;
-			case '.':
-				token = l->lex(&s);
-				if (token != IDENT) throw ParseException(l->pos, "Identifier expected");
-				TRACE("%d: %s\n", token, s.c_str());
-				fns.push_back(new Selectors::AttributeValue("class", s, '~'));
-				break;
-			case '[': {
-				token = l->lex(&s);
-				if (token == S) token = l->lex(&s);
-				if (token != IDENT) throw ParseException(l->pos, "Identifier expected");
-				std::string a = s;
+		case HASH:
+			fns.push_back(new Selectors::AttributeValue("id", s.substr(1)));
+			break;
+		case '.':
+			token = l->lex(&s);
+			ENSURE(token == IDENT, "Identifier expected");
+			TRACE("%d: %s\n", token, s.c_str());
+			fns.push_back(new Selectors::AttributeValue("class", s, '~'));
+			break;
+		case '[': {
+			token = l->lex(&s);
+			if (token == S) token = l->lex(&s);
+			ENSURE(token == IDENT, "Identifier expected");
+			std::string a = s;
 
-				token = l->lex(&s);
-				if (token == S) token = l->lex(&s);
-				if (token == ']') {
-					fns.push_back(new Selectors::Attribute(a));
-					break;
-				}
-
-				int c = 0;
-				switch (token) {
-					case INCLUDES: c = '~'; break;
-					case DASHMATCH: c = '|'; break;
-					case PREFIXMATCH: c = '^'; break;
-					case SUFFIXMATCH: c = '$'; break;
-					case SUBSTRINGMATCH: c = '*'; break;
-					case '=': c = '='; break;
-					default: throw ParseException(l->pos, "Invalid character");
-				}
-				TRACE("got %d, %c\n", token, token);
-
-				token = l->lex(&s);
-				if (token == S) token = l->lex(&s);
-				if (token != STRING && token != IDENT) throw ParseException(l->pos, "Token is neither string nor identifier"); 
-				std::string v = (token == STRING ? s.substr(1, s.length()-2) : s);
-
-				fns.push_back(new Selectors::AttributeValue(a, v, c));
-				token = l->lex(&s);
-				if (token == S) token = l->lex(&s);
-				if (token != ']') throw ParseException(l->pos, "']' expected");
+			token = l->lex(&s);
+			if (token == S) token = l->lex(&s);
+			if (token == ']') {
+				fns.push_back(new Selectors::Attribute(a));
 				break;
 			}
-			case ':': {
+
+			int c = 0;
+			switch (token) {
+				case INCLUDES: c = '~'; break;
+				case DASHMATCH: c = '|'; break;
+				case PREFIXMATCH: c = '^'; break;
+				case SUFFIXMATCH: c = '$'; break;
+				case SUBSTRINGMATCH: c = '*'; break;
+				case '=': c = '='; break;
+				default: throw ParseException(l->pos, "Invalid character");
+			}
+			TRACE("got %d, %c\n", token, token);
+
+			token = l->lex(&s);
+			if (token == S) token = l->lex(&s);
+			ENSURE(token == STRING || token == IDENT, "Token is neither string nor identifier"); 
+			std::string v = (token == STRING ? s.substr(1, s.length()-2) : s);
+
+			fns.push_back(new Selectors::AttributeValue(a, v, c));
+			token = l->lex(&s);
+			if (token == S) token = l->lex(&s);
+			ENSURE(token == ']', "']' expected");
+			break;
+		}
+		case ':': {
+			token = l->lex(&s);
+			if (token == ':') { token = l->lex(&s); s.insert(0, ":"); }
+			if (token == IDENT) {
+				fns.push_back(new Selectors::Pseudo(s));
+			} else if (token == FUNCTION) {
+				std::string f(s.substr(0, s.length()-1));
+				int an = 0, b = 0;
 				token = l->lex(&s);
-				if (token == ':') { token = l->lex(&s); s.insert(0, ":"); }
+				if (token == S) token = l->lex(&s);
 				if (token == IDENT) {
-					fns.push_back(new Selectors::Pseudo(s));
-				} else if (token == FUNCTION) {
-					// TODO!
+					if (s == "odd" || s == "even") {
+						an = 2; b = (s == "odd" ? 1 : 0);
+						token = l->lex(&s);
+						ENSURE(token == ')', "')' expected");
+					} else if (s == "n" || s == "-n") {
+						an = (s == "n" ? 1 : -1);
+						token = l->lex(&s);
+						if (token == ')') {
+							fns.push_back(new Selectors::Pseudo(s, 1, 0));
+						} else if (token == PLUS) {
+							token = l->lex(&s);
+							if (token == S) token = l->lex(&s);
+							ENSURE(token == NUMBER && stoi(&b, s), "Number expected");
+							token = l->lex(&s);
+							ENSURE(token == ')', "')' expected");
+						} else {
+							throw ParseException(l->pos, "')' expected");
+						}
+					} else {
+						throw ParseException(l->pos, "odd/even/n expected");
+					}
+				} else if (token == DIMENSION) {
+					std::istringstream ss(s);
+					ss >> an >> s;
+					ENSURE(!ss.fail() && s == "n", "Expression of form 'an' expected");
+					token = l->lex(&s);
+					if (token == PLUS) {
+						token = l->lex(&s);
+						if (token == S) token = l->lex(&s);
+						ENSURE(token == NUMBER && stoi(&b, s), "Number expected");
+						token = l->lex(&s);
+						ENSURE(token == ')', "')' expected");
+					}
+				} else if (token == NUMBER) {
+					ENSURE(stoi(&b, s), "Number expected");
 				} else {
-					throw ParseException(l->pos, "Identifier or funtion expected");
+					throw ParseException(l->pos, "Invalid expression");
 				}
-				break;
+				TRACE("\npseudo %s,with %dn + %d\n", f.c_str(), an, b);
+				fns.push_back(new Selectors::Pseudo(f, an, b));
+			} else {
+				throw ParseException(l->pos, "Identifier or funtion expected");
 			}
-			case NOT: {
-				token = l->lex(&s);
-				fns.push_back(new Selectors::Negation(parseSelector(l, token, s)));
-				lex = false;
-				break;
-			}
-			case ')': // For negations
-				token = l->lex(&s);
-				// Fallthrough
+			break;
+		}
+		case NOT: {
+			token = l->lex(&s);
+			fns.push_back(new Selectors::Negation(parseSelector(l, token, s)));
+			lex = false;
+			break;
+		}
+		case ')': // For negations
+			token = l->lex(&s);
+			// Fallthrough
 
-			default: goto finish;
+		default: goto finish;
 		}
 
 		if (lex) {

@@ -1,6 +1,5 @@
 Short TODO-List for hcxselect:
 
-	* Structural pseudo-classes with arguments (e.g, :nth-child())
 	* Support for namespaces
 	* Pseudo-elements (::first-line, ::first-letter)
 	* Raise error on unknown pseudo-classes?
