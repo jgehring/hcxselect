@@ -14,11 +14,14 @@ provides no installation options.
 
 hcxselect aims to comply with the Selectors Level 3 specification
 <http://www.w3.org/TR/selectors/>. However, a couple of browser-specific
-selectors are not implemented:
+selectors are not implemented, as they don't make sense here:
 
 	* pseudo-classes:
 	  :link, :visited, :hover, :active, :focus, :target, :lang,
 	  :enabled, :disabled, :checked, :indeterminate
+
+	* pseudo-elements:
+	  ::before, ::after
 
 
 # License
