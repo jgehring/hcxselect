@@ -52,6 +52,7 @@ typedef std::set<tree_node_<htmlcxx::HTML::Node> *> NodeSet;
  * \returns A set of nodes that matches the given selector
  */
 NodeSet select(const NodeSet &nodes, const std::string &expr);
+NodeSet select(const tree<htmlcxx::HTML::Node> &tree, const std::string &expr);
 
 
 /*!

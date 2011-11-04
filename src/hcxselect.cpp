@@ -166,6 +166,11 @@ struct SelectorFn
 
 	virtual ~SelectorFn() { }
 	virtual bool match(const NodeIt &it) const = 0;
+
+protected:
+	inline static bool hasParent(const NodeIt &it) {
+		return (it.node->parent == NULL || strcasecmp(it->tagName(), "html"));
+	}
 };
 
 // Universal selector (*)
@@ -255,26 +260,30 @@ struct Pseudo : SelectorFn
 	bool matchs(const NodeIt &it, const std::string &type) const
 	{
 		if (type == "root") {
-			return (it.node->parent->parent == NULL);
+			return !hasParent(it);
 		} else if (type == "first-child") {
+			if (!hasParent(it)) return false;
 			NodeIt jt(it.node->parent->first_child);
 			while (jt.node && !jt->isTag()) {
 				jt = jt.node->next_sibling;
 			}
 			return (jt.node == it.node);
 		} else if (type == "last-child") {
+			if (!hasParent(it)) return false;
 			NodeIt jt(it.node->parent->last_child);
 			while (jt.node && !jt->isTag()) {
 				jt = jt.node->prev_sibling;
 			}
 			return (jt.node == it.node);
 		} else if (type == "first-of-type") {
+			if (!hasParent(it)) return false;
 			NodeIt jt(it.node->parent->first_child);
 			while (jt.node && (!jt->isTag() || strcasecmp(jt->tagName(), it->tagName()))) {
 				jt = jt.node->next_sibling;
 			}
 			return (jt.node == it.node);
 		} else if (type == "last-of-type") {
+			if (!hasParent(it)) return false;
 			NodeIt jt(it.node->parent->last_child);
 			while (jt.node && (!jt->isTag() || strcasecmp(jt->tagName(), it->tagName()))) {
 				jt = jt.node->prev_sibling;
@@ -357,6 +366,7 @@ struct Combinator : SelectorFn
 		switch (c) {
 			case ' ': // Descendant
 			case '*': // Greatchild or further descendant
+				if (!hasParent(it)) return false;
 				jt = it.node->parent;
 				if (c == '*' && jt.node) {
 					jt = jt.node->parent;
@@ -370,14 +380,17 @@ struct Combinator : SelectorFn
 				return false;
 
 			case '>': // Child
+				if (!hasParent(it)) return false;
 				jt = it.node->parent;
 				return jt.node && left->match(jt);
 
 			case '+': // Adjacent sibling
+				if (!hasParent(it)) return false;
 				jt = it.node->next_sibling;
 				return jt.node && left->match(jt);
 
 			case '~': // General sibling
+				if (!hasParent(it)) return false;
 				jt = it.node->next_sibling;
 				while (jt.node) {
 					if (left->match(jt)) {
@@ -616,6 +629,25 @@ NodeSet select(const NodeSet &nodes, const std::string &expr)
 	return result;
 }
 
+// Applies a CSS selector expression to a document tree.
+NodeSet select(const tree<HTMLNode> &tree, const std::string &expr)
+{
+	// Select the <html> node from the tree and use it as the root node
+	NodeSet v;
+	::tree<HTMLNode>::iterator it;
+	for (it = tree.begin(); it != tree.end(); ++it) {
+		if (!strcasecmp(it->tagName(), "html")) {
+			v.insert(it.node);
+			break;
+		}
+	}
+
+	if (expr.empty()) {
+		return v;
+	}
+	return select(v, expr);
+}
+
 
 /*!
  * Constructs an empty selection.
@@ -630,15 +662,7 @@ Selector::Selector()
  */
 Selector::Selector(const tree<HTMLNode> &tree, const std::string &expr)
 {
-	NodeSet v;
-	::tree<HTMLNode>::sibling_iterator it;
-	for (it = tree.begin(); it != tree.end(); ++it) {
-		v.insert(it.node);
-	}
-
-	if (!expr.empty()) {
-		v = hcxselect::select(v, expr);
-	}
+	NodeSet v = hcxselect::select(tree, expr);
 	insert(v.begin(), v.end());
 }
 
