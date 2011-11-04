@@ -212,6 +212,8 @@ struct AttributeValue : SelectorFn
 
 	bool match(const NodeIt &it) const
 	{
+		if (value.empty() && c != '=') return false;
+
 		if (it->attributes().empty()) it->parseAttributes();
 		const std::string &str = it->attribute(attr).second;
 		switch (c) {
