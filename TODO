@@ -1,0 +1,6 @@
+Short TODO-List for hcxselect:
+
+	* Structural pseudo-classes with arguments (e.g, :nth-child())
+	* Pseudo-elements (::first-line, ::first-letter)
+	* Raise error on unknown pseudo-classes?
+	* Upcoming CSS Selectors Level 4
