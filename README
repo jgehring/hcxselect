@@ -23,6 +23,11 @@ selectors are not implemented, as they don't make sense here:
 	* pseudo-elements:
 	  ::before, ::after
 
+The following extra pseudo-classes are provided for convenience:
+
+	* :text matches text (i.e., non-text and non-comment node)
+	* :comment matches comment node
+
 
 # License
 

@@ -283,6 +283,10 @@ struct Pseudo : SelectorFn
 				return (it.node->first_child == NULL);
 			}
 			return (it->isComment() || it->length() == 0);
+		} else if (type == "text") {
+			return (!it->isTag() && !it->isComment());
+		} else if (type == "comment") {
+			return it->isComment();
 		}
 		return false;
 	}
