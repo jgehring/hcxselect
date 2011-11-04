@@ -59,6 +59,7 @@ const char *rawsource = \
 "    <a class=\"13\" href=\"http://example.com\">ref</a>"
 "  </div>"
 "  <div class=\"span\">foobar</div>"
+"  <table id=\"t\" class=\"\"></table>"
 "</html>"
 ;
 
@@ -71,54 +72,76 @@ struct tvec {
 	int n; // < 0: Syntax error expected
 	const char *t;
 } vectors[] = {
-	{"li,nonsense", 3, "<li>A list element</li><li>Another one</li><nonsense id=\"id1\">This is not real</nonsense>"},
-	{"nonsense", 1, "<nonsense id=\"id1\">This is not real</nonsense>"},
-	{"*", 1, rawsource},
-	{"*.class1", 1, "<span class=\"class1\" lang=\"en-fr\">A span</span>"},
-	{"#foobar", 1, "<p id=\"foobar\">This is a paragraph</p>"},
-	{"p[title]", 2, "<p title=\"title\">    A paragraph with a title    <span class=\"class1\" lang=\"en-fr\">A span</span>  </p><p title=\"t2\" lang=\"en-gb\">Another one</p>"},
-	{"p[title=\"t2\"]", 1, "<p title=\"t2\" lang=\"en-gb\">Another one</p>"},
-	{"p[title='t2']", 1, "<p title=\"t2\" lang=\"en-gb\">Another one</p>"},
-	{"span[class~=\"c\"]", 1, "<span class=\"a bb c\">Multi-class span</span>"},
-	{"span[class~=\"b\"]", 0, ""},
-	{"span[class~=\"a bb\"]", 0, ""},
-	{"p[lang|=\"en\"]", 1, "<p title=\"t2\" lang=\"en-gb\">Another one</p>"},
-	{"p[lang|=\"fr\"]", 0, ""},
-	{"p[title^='ti']", 1, "<p title=\"title\">    A paragraph with a title    <span class=\"class1\" lang=\"en-fr\">A span</span>  </p>"},
-	{"span[class~=\"c\"]", 1, "<span class=\"a bb c\">Multi-class span</span>"},
-	{"span[class~=\"b\"]", 0, ""},
-	{"span[class~=\"a bb\"]", 0, ""},
-	{"p[lang|=\"en\"]", 1, "<p title=\"t2\" lang=\"en-gb\">Another one</p>"},
-	{"p[lang|=\"fr\"]", 0, ""},
-	{"p[id^=\"foo\"]", 1, "<p id=\"foobar\">This is a paragraph</p>"},
-	{"p[id$=\"bar\"]", 1, "<p id=\"foobar\">This is a paragraph</p>"},
-	{"p[id*=\"oob\"]", 1, "<p id=\"foobar\">This is a paragraph</p>"},
-	{".class1", 1, "<span class=\"class1\" lang=\"en-fr\">A span</span>"},
-	{".cl", 0, ""},
-	{".cl.ass1", 0, ""},
-	{".a", 1, "<span class=\"a bb c\">Multi-class span</span>"},
-	{".a.a", 1, "<span class=\"a bb c\">Multi-class span</span>"},
-	{".a:not(.bb)", 0, ""},
-	{":not(.a).bb", 0, ""},
-	{"span.bb:not(.a):not(.a)", 0, ""},
-	{"#foo", 0, ""},
-	{"#foo#id1", 0, ""},
-	{"#id1#id1", 1, "<nonsense id=\"id1\">This is not real</nonsense>"},
+	{"li,nonsense", 3, "<li></li>,<li></li>,<nonsense id=\"id1\"></nonsense>"}, // 1
+	{"nonsense", 1, "<nonsense id=\"id1\"></nonsense>"}, // 2
+	{"*", 14, "<html></html>,<ul></ul>,<li></li>,<li></li>,<p id=\"foobar\"></p>,<nonsense id=\"id1\"></nonsense>,<p title=\"title\"></p>,<span class=\"class1\" lang=\"en-fr\"></span>,<p title=\"t2\" lang=\"en-gb\"></p>,<span class=\"a bb c\"></span>,<div class=\"one.word\"></div>,<a class=\"13\" href=\"http://example.com\"></a>,<div class=\"span\"></div>,<table id=\"t\" class=\"\"></table>"}, // 3
+	{"*.class1", 1, "<span class=\"class1\" lang=\"en-fr\"></span>"}, // 3
+	{"#foobar", 1, "<p id=\"foobar\"></p>"}, // 4
+	{"p[title]", 2, "<p title=\"title\"></p>,<p title=\"t2\" lang=\"en-gb\"></p>"}, // 5
+	{"p[title=\"t2\"]", 1, "<p title=\"t2\" lang=\"en-gb\"></p>"}, // 6
+	{"p[title='t2']", 1, "<p title=\"t2\" lang=\"en-gb\"></p>"}, // 6
+	{"span[class~=\"c\"]", 1, "<span class=\"a bb c\"></span>"}, // 7
+	{"span[class~=\"b\"]", 0, ""},  // 7
+	{"span[class~=\"a bb\"]", 0, ""}, // 7b
+	{"p[lang|=\"en\"]", 1, "<p title=\"t2\" lang=\"en-gb\"></p>"}, // 8
+	{"p[lang|=\"fr\"]", 0, ""}, // 8
+	{"p[title^='ti']", 1, "<p title=\"title\"></p>"}, // 9
+	{"p[id^=\"foo\"]", 1, "<p id=\"foobar\"></p>"}, // 9
+	{"p[id$=\"bar\"]", 1, "<p id=\"foobar\"></p>"}, // 10
+	{"p[id*=\"oob\"]", 1, "<p id=\"foobar\"></p>"}, // 11
+	{".class1", 1, "<span class=\"class1\" lang=\"en-fr\"></span>"}, // 13
+	{".cl", 0, ""}, // 13
+	{".cl.ass1", 0, ""}, // 14
+	{".a", 1, "<span class=\"a bb c\"></span>"}, // 14
+	{".a.a", 1, "<span class=\"a bb c\"></span>"}, // 14
+	{".a:not(.bb)", 0, ""}, // 14c
+	{":not(.a).bb", 0, ""}, // 14c
+	{"span.bb:not(.a):not(.a)", 0, ""}, // 14e
+	{"#foo", 0, ""}, // 15
+	{"#foo#id1", 0, ""}, // 16
+	{"*:root", 1, "<html></html>"}, // 27
+	{":root:first-child", 0, ""}, // 27b
+	{":root:last-child", 0, ""}, // 27b
+	{":root:only-child", 0, ""}, // 27b
+//	{":root:nth-child(1)", 0, ""}, // 27b
+//	{":root:nth-child(n)", 0, ""}, // 27b
+	{":root:first-of-type", 0, ""}, // 27b
+	{":root:last-of-type", 0, ""}, // 27b
+	{":root:only-of-type", 0, ""}, // 27b
+//	{":root:nth-of-type(1)", 0, ""}, // 27b
+//	{":root:nth-of-type(n)", 0, ""}, // 27b
+//	{":root:nth-last-of-type(1)", 0, ""}, // 27b
+//	{":root:nth-last-of-type(n)", 0, ""}, // 27b
+	{"* :root", 0, ""}, // 27c
+	{"* html", 0, ""}, // 27c
+	{"#id1#id1", 1, "<nonsense id=\"id1\"></nonsense>"}, // 16
 	{".13", -1, ""}, // 125, 175a
 	{".\\13", 0, ""}, // 126, 175b
-	{".\\31 \\33", 1, "<a class=\"13\" href=\"http://example.com\">ref</a>"}, // 175c
+	{".\\31 \\33", 1, "<a class=\"13\" href=\"http://example.com\"></a>"}, // 175c
 	{"p.", -1, ""}, // 124
 	{".a\\ bb\\ c", 0, ""}, // 155b
 	{".one.word", 0, ""}, // 155c
-	{".one\\.word", 1, "<div class=\"one.word\">hooray    <a class=\"13\" href=\"http://example.com\">ref</a>  </div>"}, // 155d
+	{".one\\.word", 1, "<div class=\"one.word\"></div>"}, // 155d
 	{"a & span, p", -1, ""}, // 156
 	{"[*=t2]", -1, ""}, // 157
 	{"[*|*=t2]", -1, ""}, // 158
-	{s170, 2, "<span class=\"class1\" lang=\"en-fr\">A span</span><span class=\"a bb c\">Multi-class span</span>"}, // 170
-	{s170a, 1, "<div class=\"span\">foobar</div>"}, // 170a
-	{s170b, 1, "<div class=\"span\">foobar</div>"}, // 170b
-	{s170c, 1, "<a class=\"13\" href=\"http://example.com\">ref</a>"}, // 170c
-	{s170d, 1, "<a class=\"13\" href=\"http://example.com\">ref</a>"}, // 170d
+	{s170, 2, "<span class=\"class1\" lang=\"en-fr\"></span>,<span class=\"a bb c\"></span>"}, // 170
+	{s170a, 1, "<div class=\"span\"></div>"}, // 170a
+	{s170b, 1, "<div class=\"span\"></div>"}, // 170b
+	{s170c, 1, "<a class=\"13\" href=\"http://example.com\"></a>"}, // 170c
+	{s170d, 1, "<a class=\"13\" href=\"http://example.com\"></a>"}, // 170d
+	{"span::first-child", 0, ""}, // 177b
+	{"span:not(:first-child)", 1, "<span class=\"a bb c\"></span>"}, // 178
+	{".one\\.word A", 1, "<a class=\"13\" href=\"http://example.com\"></a>"}, // 181
+	{".bb.", -1, ""}, // 183
+	{"..bb", -1, ""}, // 183
+	{".bb..c", -1, ""}, // 183
+	{"table[class$=\"\"]", 0, ""}, // 184a
+	{"table[class^=\"\"]", 0, ""}, // 184b
+	{"table[class*=\"\"]", 0, ""}, // 184c
+	{"table:not([class$=\"\"])", 1, "<table id=\"t\" class=\"\"></table>"}, // 184d
+	{"table:not([class^=\"\"])", 1, "<table id=\"t\" class=\"\"></table>"}, // 184e
+	{"table:not([class*=\"\"])", 1, "<table id=\"t\" class=\"\"></table>"}, // 184f
 };
 
 
@@ -163,7 +186,8 @@ int main(int argc, char **argv)
 		}
 
 		for (hcxselect::Selector::const_iterator it = s.begin(); it != s.end(); ++it) {
-			ss << source.substr((*it)->data.offset(), (*it)->data.length());
+			if (it != s.begin()) ss << ",";
+			ss << (*it)->data.text() << (*it)->data.closingText();
 		}
 
 		if (s.size() != (size_t)vectors[i].n) {
