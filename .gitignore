@@ -6,3 +6,4 @@
 .*.swp
 examples/select
 src/lexer.h
+test/test
