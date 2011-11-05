@@ -48,79 +48,6 @@ inline void TRACE(...) { }
 namespace hcxselect
 {
 
-namespace
-{
-
-// String to number
-template <class T> inline bool stoi(T *t, const std::string& s) {
-	std::istringstream iss(s);
-	return !(iss >> *t).fail();
-}
-
-}
-
-// Lexer for CSS selector grammar (wrapper for reentrant FLEX parser)
-class Lexer
-{
-public:
-	Lexer(const std::string &str)
-		: pos(0), spos(0)
-	{
-		yylex_init(&yy);
-		yy_scan_string(str.c_str(), yy);
-	}
-
-	~Lexer()
-	{
-		yylex_destroy(yy);
-	}
-
-	void unescape(std::string *str)
-	{
-		TRACE("unescape : %s\n", str->c_str());
-		size_t pos = 0;
-		while ((pos = str->find('\\', pos)) != std::string::npos) {
-			if ((*str)[pos+1] == '\\') {
-				str->replace(pos, 2, "");
-			} else if (isdigit((*str)[pos+1])) {
-				// Un-escape UTF-8 codes, sometimes followed by space
-				size_t len = 1;
-				while (isdigit((*str)[pos+len])) ++len;
-				while (isspace((*str)[pos+len])) ++len;
-				if (len > 1) {
-					unsigned int x;
-					std::stringstream ss;
-					ss << std::hex << str->substr(pos+1, len-1);
-					ss >> x;
-					str->replace(pos, len, 1, x);
-				}
-			} else {
-				str->replace(pos, 1, "");
-			}
-		}
-		TRACE("unescaped: %s\n", str->c_str());
-	}
-
-	inline int lex(std::string *text)
-	{
-		int token = yylex(yy);
-		spos += yyget_leng(yy);
-		if (token > 0) {
-			*text = yyget_text(yy);
-			pos = spos + 1 - text->length();
-		} else {
-			pos = spos;
-		}
-		if (token == IDENT) {
-			unescape(text);
-		}
-		return token;
-	}
-
-	yyscan_t yy;
-	int pos, spos;
-};
-
 // Anonymous namespace for local helpers
 namespace
 {
@@ -172,6 +99,73 @@ inline void delete_all(const T &v)
 		delete *it;
 	}
 }
+
+// String to number
+template <class T> inline bool stoi(T *t, const std::string& s)
+{
+	std::istringstream iss(s);
+	return !(iss >> *t).fail();
+}
+
+// Lexer for CSS selector grammar (wrapper for reentrant FLEX parser)
+class Lexer
+{
+public:
+	Lexer(const std::string &str)
+		: pos(0), spos(0)
+	{
+		yylex_init(&yy);
+		yy_scan_string(str.c_str(), yy);
+	}
+
+	~Lexer()
+	{
+		yylex_destroy(yy);
+	}
+
+	void unescape(std::string *str)
+	{
+		size_t pos = 0;
+		while ((pos = str->find('\\', pos)) != std::string::npos) {
+			if ((*str)[pos+1] == '\\') {
+				str->replace(pos, 2, "");
+			} else if (isdigit((*str)[pos+1])) {
+				// Un-escape UTF-8 codes, sometimes followed by space
+				size_t len = 1;
+				while (isdigit((*str)[pos+len])) ++len;
+				while (isspace((*str)[pos+len])) ++len;
+				if (len > 1) {
+					unsigned int x;
+					std::stringstream ss;
+					ss << std::hex << str->substr(pos+1, len-1);
+					ss >> x;
+					str->replace(pos, len, 1, x);
+				}
+			} else {
+				str->replace(pos, 1, "");
+			}
+		}
+	}
+
+	inline int lex(std::string *text)
+	{
+		int token = yylex(yy);
+		spos += yyget_leng(yy);
+		if (token > 0) {
+			*text = yyget_text(yy);
+			pos = spos + 1 - text->length();
+		} else {
+			pos = spos;
+		}
+		if (token == IDENT) {
+			unescape(text);
+		}
+		return token;
+	}
+
+	yyscan_t yy;
+	int pos, spos;
+};
 
 namespace Selectors
 {
