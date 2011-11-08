@@ -337,9 +337,8 @@ struct Pseudo : SelectorFn
 			int i = 1;
 			NodeIt jt(it.node->parent->first_child);
 			while (jt.node && it.node != jt.node) {
-				if (jt->isTag() && strcasecmp(jt->tagName(), it->tagName())) ++i;
+				if (jt->isTag() && !strcasecmp(jt->tagName(), it->tagName())) ++i;
 				jt = jt.node->next_sibling;
-				++i;
 			}
 			return checkNum(i);
 		} else if (type == "nth-last-of-type") {
@@ -347,9 +346,8 @@ struct Pseudo : SelectorFn
 			int i = 1;
 			NodeIt jt(it.node->parent->last_child);
 			while (jt.node && it.node != jt.node) {
-				if (jt->isTag() && strcasecmp(jt->tagName(), it->tagName())) ++i;
+				if (jt->isTag() && !strcasecmp(jt->tagName(), it->tagName())) ++i;
 				jt = jt.node->prev_sibling;
-				++i;
 			}
 			return checkNum(i);
 		} else if (type == "text") {
