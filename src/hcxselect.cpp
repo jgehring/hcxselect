@@ -443,17 +443,20 @@ struct Combinator : SelectorFn
 
 			case '+': // Adjacent sibling
 				if (!hasParent(it)) return false;
-				jt = it.node->next_sibling;
+				jt = it.node->prev_sibling;
+				while (jt.node && !jt->isTag()) {
+					jt = jt.node->prev_sibling;
+				}
 				return jt.node && left->match(jt);
 
 			case '~': // General sibling
 				if (!hasParent(it)) return false;
-				jt = it.node->next_sibling;
+				jt = it.node->prev_sibling;
 				while (jt.node) {
-					if (left->match(jt)) {
+					if (jt->isTag() && left->match(jt)) {
 						return true;
 					}
-					jt = jt.node->next_sibling;
+					jt = jt.node->prev_sibling;
 				}
 				return false;
 
