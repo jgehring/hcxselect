@@ -558,15 +558,13 @@ SelectorFn *parseSimpleSequence(Lexer *l, int &token, std::string &s)
 					} else if (s == "n" || s == "-n") {
 						an = (s == "n" ? 1 : -1);
 						token = l->lex(&s);
-						if (token == ')') {
-							fns.push_back(new Selectors::Pseudo(s, 1, 0));
-						} else if (token == PLUS) {
+						if (token == PLUS) {
 							token = l->lex(&s);
 							if (token == S) token = l->lex(&s);
 							ENSURE(token == NUMBER && stoi(&b, s), "Number expected");
 							token = l->lex(&s);
 							ENSURE(token == ')', "')' expected");
-						} else {
+						} else if (token != ')') {
 							throw ParseException(l->pos, "')' expected");
 						}
 					} else {
@@ -589,7 +587,7 @@ SelectorFn *parseSimpleSequence(Lexer *l, int &token, std::string &s)
 				} else {
 					throw ParseException(l->pos, "Invalid expression");
 				}
-				TRACE("\npseudo %s,with %dn + %d\n", f.c_str(), an, b);
+				TRACE("pseudo %s,with %dn + %d\n", f.c_str(), an, b);
 				fns.push_back(new Selectors::Pseudo(f, an, b));
 			} else {
 				throw ParseException(l->pos, "Identifier or funtion expected");
