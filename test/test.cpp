@@ -52,6 +52,9 @@ const char *rawsource = \
 "  <p title=\"title\">"
 "    A paragraph with a title"
 "    <span class=\"class1\" lang=\"en-fr\">A span</span>"
+"    <table><tr><td>"
+"      <span class=\"sp\">Span in table</span>"
+"    </td></tr></table>"
 "  </p>"
 "  <p title=\"t2\" lang=\"en-gb\">Another one</p>"
 "  <span class=\"a bb c\">Multi-class span</span>"
@@ -74,7 +77,7 @@ struct tvec {
 } vectors[] = {
 	{"li,nonsense", 3, "<li></li>,<li n=\"2\"></li>,<nonsense id=\"id1\"></nonsense>"}, // 1
 	{"nonsense", 1, "<nonsense id=\"id1\"></nonsense>"}, // 2
-	{"*", 14, "<html></html>,<ul></ul>,<li></li>,<li n=\"2\"></li>,<p id=\"foobar\"></p>,<nonsense id=\"id1\"></nonsense>,<p title=\"title\"></p>,<span class=\"class1\" lang=\"en-fr\"></span>,<p title=\"t2\" lang=\"en-gb\"></p>,<span class=\"a bb c\"></span>,<div class=\"one.word\"></div>,<a class=\"13\" href=\"http://example.com\"></a>,<div class=\"span\"></div>,<table id=\"t\" class=\"\"></table>"}, // 3
+	{"*", 18, "<html></html>,<ul></ul>,<li></li>,<li n=\"2\"></li>,<p id=\"foobar\"></p>,<nonsense id=\"id1\"></nonsense>,<p title=\"title\"></p>,<span class=\"class1\" lang=\"en-fr\"></span>,<table></table>,<tr></tr>,<td></td>,<span class=\"sp\"></span>,<p title=\"t2\" lang=\"en-gb\"></p>,<span class=\"a bb c\"></span>,<div class=\"one.word\"></div>,<a class=\"13\" href=\"http://example.com\"></a>,<div class=\"span\"></div>,<table id=\"t\" class=\"\"></table>"}, // 3
 	{"*.class1", 1, "<span class=\"class1\" lang=\"en-fr\"></span>"}, // 3
 	{"#foobar", 1, "<p id=\"foobar\"></p>"}, // 4
 	{"p[title]", 2, "<p title=\"title\"></p>,<p title=\"t2\" lang=\"en-gb\"></p>"}, // 5
@@ -123,6 +126,23 @@ struct tvec {
 	{"p:nth-child(2n-4)", -1, ""}, // 28
 	{"p:nth-child(2n)", 2, "<p id=\"foobar\"></p>,<p title=\"title\"></p>"}, // 28
 	{"a:nth-child(n+2)", 1, "<a class=\"13\" href=\"http://example.com\"></a>"}, // 28
+	{"p:nth-last-child(5)", 1, "<p title=\"t2\" lang=\"en-gb\"></p>"}, // 29
+	{"p:nth-last-child(4n+7)", 0, ""}, // 29
+	{"p:nth-of-type(1)", 1, "<p id=\"foobar\"></p>"}, // 30
+	{"p:nth-of-type(n)", 3, "<p id=\"foobar\"></p>,<p title=\"title\"></p>,<p title=\"t2\" lang=\"en-gb\"></p>"}, // 30
+	{"p:nth-last-of-type(1)", 1, "<p title=\"t2\" lang=\"en-gb\"></p>"}, // 31
+	{"p:nth-last-of-type(10n+20)", 0, ""}, // 31
+	{"p > *:first-child", 1, "<span class=\"class1\" lang=\"en-fr\"></span>"}, // 32
+	{"html > *:last-child", 1, "<table id=\"t\" class=\"\"></table>"}, // 33
+	{"p:first-of-type", 1, "<p id=\"foobar\"></p>"}, // 34
+	{"p:last-of-type", 1, "<p title=\"t2\" lang=\"en-gb\"></p>"}, // 35
+	{"span:only-child", 1, "<span class=\"sp\"></span>"}, // 36
+	{":only-of-type", 10, "<ul></ul>,<nonsense id=\"id1\"></nonsense>,<span class=\"class1\" lang=\"en-fr\"></span>,<table></table>,<tr></tr>,<td></td>,<span class=\"sp\"></span>,<span class=\"a bb c\"></span>,<a class=\"13\" href=\"http://example.com\"></a>,<table id=\"t\" class=\"\"></table>"}, // 37
+	{"p span", 2, "<span class=\"class1\" lang=\"en-fr\"></span>,<span class=\"sp\"></span>"}, // 43
+	{"p > span", 1, "<span class=\"class1\" lang=\"en-fr\"></span>"}, // 44
+	{"p + span", 1, "<span class=\"a bb c\"></span>"}, // 45
+	{"p ~ div", 2, "<div class=\"one.word\"></div>,<div class=\"span\"></div>"}, // 46
+	{"p * span", 1, "<span class=\"sp\"></span>"}, // ?
 	{".13", -1, ""}, // 125, 175a
 	{".\\13", 0, ""}, // 126, 175b
 	{".\\31 \\33", 1, "<a class=\"13\" href=\"http://example.com\"></a>"}, // 175c
@@ -133,7 +153,7 @@ struct tvec {
 	{"a & span, p", -1, ""}, // 156
 	{"[*=t2]", -1, ""}, // 157
 	{"[*|*=t2]", -1, ""}, // 158
-	{s170, 2, "<span class=\"class1\" lang=\"en-fr\"></span>,<span class=\"a bb c\"></span>"}, // 170
+	{s170, 3, "<span class=\"class1\" lang=\"en-fr\"></span>,<span class=\"sp\"></span>,<span class=\"a bb c\"></span>"}, // 170
 	{s170a, 1, "<div class=\"span\"></div>"}, // 170a
 	{s170b, 1, "<div class=\"span\"></div>"}, // 170b
 	{s170c, 1, "<a class=\"13\" href=\"http://example.com\"></a>"}, // 170c
@@ -147,9 +167,9 @@ struct tvec {
 	{"table[class$=\"\"]", 0, ""}, // 184a
 	{"table[class^=\"\"]", 0, ""}, // 184b
 	{"table[class*=\"\"]", 0, ""}, // 184c
-	{"table:not([class$=\"\"])", 1, "<table id=\"t\" class=\"\"></table>"}, // 184d
-	{"table:not([class^=\"\"])", 1, "<table id=\"t\" class=\"\"></table>"}, // 184e
-	{"table:not([class*=\"\"])", 1, "<table id=\"t\" class=\"\"></table>"}, // 184f
+	{"table:not([class$=\"\"])", 2, "<table></table>,<table id=\"t\" class=\"\"></table>"}, // 184d
+	{"table:not([class^=\"\"])", 2, "<table></table>,<table id=\"t\" class=\"\"></table>"}, // 184e
+	{"table:not([class*=\"\"])", 2, "<table></table>,<table id=\"t\" class=\"\"></table>"}, // 184f
 };
 
 
