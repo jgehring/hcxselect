@@ -311,7 +311,8 @@ struct Pseudo : SelectorFn
 			return (jt.node == it.node);
 		} else if (type == "empty") {
 			if (it->isTag()) {
-				return (it.node->first_child == NULL);
+				return (it.node->first_child == NULL ||
+						(it.node->first_child->data.isComment() && it.node->first_child == it.node->last_child));
 			}
 			return (it->isComment() || it->length() == 0);
 		} else if (type == "nth-child") {
