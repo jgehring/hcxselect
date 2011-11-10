@@ -584,6 +584,8 @@ SelectorFn *parseSimpleSequence(Lexer *l, int &token, std::string &s)
 					}
 				} else if (token == NUMBER) {
 					ENSURE(stoi(&b, s), "Number expected");
+					token = l->lex(&s);
+					ENSURE(token == ')', "')' expected");
 				} else {
 					throw ParseException(l->pos, "Invalid expression");
 				}
@@ -597,13 +599,10 @@ SelectorFn *parseSimpleSequence(Lexer *l, int &token, std::string &s)
 		case NOT: {
 			token = l->lex(&s);
 			fns.push_back(new Selectors::Negation(parseSelector(l, token, s)));
-			lex = false;
+			ENSURE(token == ')', "')' expected");
 			break;
 		}
 		case ')': // For negations
-			token = l->lex(&s);
-			// Fallthrough
-
 		default: goto finish;
 		}
 
