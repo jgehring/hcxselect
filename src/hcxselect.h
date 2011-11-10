@@ -39,20 +39,37 @@
 #include <htmlcxx/html/tree.h>
 
 
+/*!
+ * Library namespace
+ */
 namespace hcxselect
 {
 
+/*!
+ * Convenience type for a set of nodes.
+ */
 typedef std::set<tree_node_<htmlcxx::HTML::Node> *> NodeSet;
+
+
+/*!
+ * Applies a CSS selector expression to a whole HTML tree.
+ * \note May throw a ParseException.
+ *
+ * \param tree The HTML tree
+ * \param expr The CSS selector expression
+ * \returns A set of nodes that matches the given selector
+ */
+NodeSet select(const tree<htmlcxx::HTML::Node> &tree, const std::string &expr);
 
 /*!
  * Applies a CSS selector expression to a set of nodes.
+ * \note May throw a ParseException.
  *
  * \param nodes The set of nodes
  * \param expr The CSS selector expression
  * \returns A set of nodes that matches the given selector
  */
 NodeSet select(const NodeSet &nodes, const std::string &expr);
-NodeSet select(const tree<htmlcxx::HTML::Node> &tree, const std::string &expr);
 
 
 /*!
@@ -70,15 +87,25 @@ public:
 
 
 /*!
- * Custom exception that may be thrown during parsing.
+ * Exception that may be thrown when parsing a selector expression.
  */
 class ParseException : std::exception
 {
 public:
+	/*!
+	 * Constructor.
+	 */
 	ParseException(int pos, const char *info = NULL)
 		: m_pos(pos), m_info(info) { }
 
+	/*!
+	 * Returns the error string.
+	 */
 	const char *what() const throw() { return m_info; }
+
+	/*!
+	 * Returns the parser position inside the current selector
+	 */
 	int position() const throw() { return m_pos; }
 
 private:

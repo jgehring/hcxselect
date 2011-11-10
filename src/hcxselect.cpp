@@ -713,23 +713,6 @@ NodeSet match(const NodeSet &nodes, const SelectorFn *fn)
 } // Anonymous namespace
 
 
-// Applies a CSS selector expression to a set of nodes.
-NodeSet select(const NodeSet &nodes, const std::string &expr)
-{
-	// Parse expression
-	std::vector<SelectorFn *> fns = parse(expr);
-
-	NodeSet result;
-	std::vector<SelectorFn *>::const_iterator it;
-	for (it = fns.begin(); it != fns.end(); ++it) {
-		NodeSet v = match(nodes, *it);
-		result.insert(v.begin(), v.end());
-	}
-
-	delete_all(fns);
-	return result;
-}
-
 // Applies a CSS selector expression to a document tree.
 NodeSet select(const tree<HTMLNode> &tree, const std::string &expr)
 {
@@ -747,6 +730,23 @@ NodeSet select(const tree<HTMLNode> &tree, const std::string &expr)
 		return v;
 	}
 	return select(v, expr);
+}
+
+// Applies a CSS selector expression to a set of nodes.
+NodeSet select(const NodeSet &nodes, const std::string &expr)
+{
+	// Parse expression
+	std::vector<SelectorFn *> fns = parse(expr);
+
+	NodeSet result;
+	std::vector<SelectorFn *>::const_iterator it;
+	for (it = fns.begin(); it != fns.end(); ++it) {
+		NodeSet v = match(nodes, *it);
+		result.insert(v.begin(), v.end());
+	}
+
+	delete_all(fns);
+	return result;
 }
 
 
