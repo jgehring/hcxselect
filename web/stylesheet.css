@@ -1,0 +1,92 @@
+body {
+  margin: 10px 40px 4px 40px;
+  background-color: #EBDFD3;
+}
+
+h2 {
+  text-align: center;
+}
+
+div.body {
+  padding: 10px;
+  border: 1px solid #000000;
+  background-color: #FFFFFF;
+}
+
+div.sflogo {
+  border: 1px solid #000000;
+  float: right;
+}
+
+div.index {
+  margin: 1px;
+  float: left;
+}
+
+div.main {
+  clear: both;
+}
+
+a {
+  text-decoration: none;
+  font-weight: bold;
+}
+
+ul {
+  padding-left: 30px;
+  list-style-type: disc;
+}
+
+/* libgithub style defitions */
+div #commits {
+  padding: 0px 10px 10px 30px;
+  margin: 1px;
+  clear: both;
+}
+
+div.libgithub-badge-outline {
+  display: list-item;
+  padding-bottom: 10px;
+}
+
+div.libgithub-badge-username {
+  display: none;
+}
+
+img.libgithub-badge-gravatar {
+  display: none;
+}
+
+span.libgithub-badge-diffadded {
+  color: green;
+  background-color: transparent;
+}
+
+span.libgithub-badge-diffremoved {
+  color: red;
+  background-color: transparent;
+}
+
+span.libgithub-badge-diffmodified {
+  color: purple;
+  background-color: transparent;
+}
+
+div.libgithub-badge-filelist {
+  margin-top: 10px;
+}
+
+div.libgithub-badge-filelist ul {
+  list-style-type: square;
+  list-style-position: inside;
+  margin: 0px;
+}
+
+div.libgithub-badge-diffstat {
+  font-weight: normal;
+  font-size: 0.9em;
+}
+
+div.libgithub-badge-commitmessage {
+  font-weight: bold;
+}
