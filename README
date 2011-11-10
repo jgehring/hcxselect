@@ -5,9 +5,14 @@ hcxselect is a small CSS selector engine for htmlcxx. It parses
 CSS selector expressions and applies them to a set of trees of HTML
 nodes parsed via htmlcxx.
 
-The "library" consists of a header and a source file and is
-currently meant to be directly included in other software, as it
-provides no installation options.
+
+# Usage
+
+The "library" consists of a header and a source file and is currently
+meant to be directly included in other software, as it provides no
+installation options. Please be aware the flex is needed to generate
+code for the lexical scanner. However, this needs to be done only once,
+and the respective header file can be used directly.
 
 
 # Compliance
