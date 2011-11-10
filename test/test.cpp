@@ -44,8 +44,8 @@ using namespace std;
 const char *rawsource = \
 "<html>"
 "  <ul>"
-"    <li>A list element</li>"
-"    <li n=\"2\">Another one</li>"
+"    <li><bla></bla></li>"
+"    <li n=\"2\"> </li>"
 "  </ul>"
 "  <p id=\"foobar\">This is a paragraph</p>"
 "  <nonsense id=\"id1\">This is not real</nonsense>"
@@ -62,7 +62,7 @@ const char *rawsource = \
 "    <a class=\"13\" href=\"http://example.com\">ref</a>"
 "  </div>"
 "  <div class=\"span\">foobar</div>"
-"  <table id=\"t\" class=\"\"></table>"
+"  <table id=\"t\" class=\"\"><!-- A comment --></table>"
 "</html>"
 ;
 
@@ -77,7 +77,7 @@ struct tvec {
 } vectors[] = {
 	{"li,nonsense", 3, "<li></li>,<li n=\"2\"></li>,<nonsense id=\"id1\"></nonsense>"}, // 1
 	{"nonsense", 1, "<nonsense id=\"id1\"></nonsense>"}, // 2
-	{"*", 18, "<html></html>,<ul></ul>,<li></li>,<li n=\"2\"></li>,<p id=\"foobar\"></p>,<nonsense id=\"id1\"></nonsense>,<p title=\"title\"></p>,<span class=\"class1\" lang=\"en-fr\"></span>,<table></table>,<tr></tr>,<td></td>,<span class=\"sp\"></span>,<p title=\"t2\" lang=\"en-gb\"></p>,<span class=\"a bb c\"></span>,<div class=\"one.word\"></div>,<a class=\"13\" href=\"http://example.com\"></a>,<div class=\"span\"></div>,<table id=\"t\" class=\"\"></table>"}, // 3
+	{"*", 19, "<html></html>,<ul></ul>,<li></li>,<bla></bla>,<li n=\"2\"></li>,<p id=\"foobar\"></p>,<nonsense id=\"id1\"></nonsense>,<p title=\"title\"></p>,<span class=\"class1\" lang=\"en-fr\"></span>,<table></table>,<tr></tr>,<td></td>,<span class=\"sp\"></span>,<p title=\"t2\" lang=\"en-gb\"></p>,<span class=\"a bb c\"></span>,<div class=\"one.word\"></div>,<a class=\"13\" href=\"http://example.com\"></a>,<div class=\"span\"></div>,<table id=\"t\" class=\"\"></table>"}, // 3
 	{"*.class1", 1, "<span class=\"class1\" lang=\"en-fr\"></span>"}, // 3
 	{"#foobar", 1, "<p id=\"foobar\"></p>"}, // 4
 	{"p[title]", 2, "<p title=\"title\"></p>,<p title=\"t2\" lang=\"en-gb\"></p>"}, // 5
@@ -137,16 +137,41 @@ struct tvec {
 	{"p:first-of-type", 1, "<p id=\"foobar\"></p>"}, // 34
 	{"p:last-of-type", 1, "<p title=\"t2\" lang=\"en-gb\"></p>"}, // 35
 	{"span:only-child", 1, "<span class=\"sp\"></span>"}, // 36
-	{":only-of-type", 10, "<ul></ul>,<nonsense id=\"id1\"></nonsense>,<span class=\"class1\" lang=\"en-fr\"></span>,<table></table>,<tr></tr>,<td></td>,<span class=\"sp\"></span>,<span class=\"a bb c\"></span>,<a class=\"13\" href=\"http://example.com\"></a>,<table id=\"t\" class=\"\"></table>"}, // 37
+	{":only-of-type", 11, "<ul></ul>,<bla></bla>,<nonsense id=\"id1\"></nonsense>,<span class=\"class1\" lang=\"en-fr\"></span>,<table></table>,<tr></tr>,<td></td>,<span class=\"sp\"></span>,<span class=\"a bb c\"></span>,<a class=\"13\" href=\"http://example.com\"></a>,<table id=\"t\" class=\"\"></table>"}, // 37
 	{"p span", 2, "<span class=\"class1\" lang=\"en-fr\"></span>,<span class=\"sp\"></span>"}, // 43
 	{"p > span", 1, "<span class=\"class1\" lang=\"en-fr\"></span>"}, // 44
 	{"p + span", 1, "<span class=\"a bb c\"></span>"}, // 45
 	{"p ~ div", 2, "<div class=\"one.word\"></div>,<div class=\"span\"></div>"}, // 46
 	{"p * span", 1, "<span class=\"sp\"></span>"}, // ?
-	{".13", -1, ""}, // 125, 175a
-	{".\\13", 0, ""}, // 126, 175b
+	{"p:not([title^=\"t\"])", 1, "<p id=\"foobar\"></p>"}, // 54
+	{"p:not([id$=\"bar\"])", 2, "<p title=\"title\"></p>,<p title=\"t2\" lang=\"en-gb\"></p>"}, // 55
+	{"p:not([title*=\"tl\"])", 2, "<p id=\"foobar\"></p>,<p title=\"t2\" lang=\"en-gb\"></p>"}, // 56
+	{"div:not(.span)", 1, "<div class=\"one.word\"></div>"}, // 57
+	{"table:not(#t)", 1, "<table></table>"}, // 58
+	{"a:not(:root)", 1, "<a class=\"13\" href=\"http://example.com\"></a>"}, // 72
+	{"html:not(:root), test:not(:root)", 0, ""}, // 72b
+	{"p:not(:nth-child(2n))", 1, "<p title=\"t2\" lang=\"en-gb\"></p>"}, // 73
+	{"p:not(:nth-last-child(4n+7))", 3, "<p id=\"foobar\"></p>,<p title=\"title\"></p>,<p title=\"t2\" lang=\"en-gb\"></p>"}, // 74
+	{"p:not(:nth-of-type(n))", 0, ""}, // 75
+	{"p:not(:nth-last-of-type(10n+20))", 3, "<p id=\"foobar\"></p>,<p title=\"title\"></p>,<p title=\"t2\" lang=\"en-gb\"></p>"}, // 76
+	{"p > *:not(:first-child)", 1, "<table></table>"}, // 77
+	{"html > *:not(:last-child)", 8, "<ul></ul>,<p id=\"foobar\"></p>,<nonsense id=\"id1\"></nonsense>,<p title=\"title\"></p>,<p title=\"t2\" lang=\"en-gb\"></p>,<span class=\"a bb c\"></span>,<div class=\"one.word\"></div>,<div class=\"span\"></div>"}, // 78
+	{"p:not(:first-of-type)", 2, "<p title=\"title\"></p>,<p title=\"t2\" lang=\"en-gb\"></p>"}, // 79
+	{"p:not(:last-of-type)", 2, "<p id=\"foobar\"></p>,<p title=\"title\"></p>"}, // 80
+	{"span:not(:only-child)", 2, "<span class=\"class1\" lang=\"en-fr\"></span>,<span class=\"a bb c\"></span>"}, // 81
+	{"*:not(:only-of-type)", 8, "<html></html>,<li></li>,<li n=\"2\"></li>,<p id=\"foobar\"></p>,<p title=\"title\"></p>,<p title=\"t2\" lang=\"en-gb\"></p>,<div class=\"one.word\"></div>,<div class=\"span\"></div>"}, // 82
+	{"p:not(:not(:first-of-type))", 1, "<p id=\"foobar\"></p>"}, // !83
+	{"p > table td", 1, "<td></td>"},  // 86
+	{"p + span ~ table", 1, "<table id=\"t\" class=\"\"></table>"}, // 87
+	{"span + div a", 1, "<a class=\"13\" href=\"http://example.com\"></a>"}, // 88
+	{"p td > span", 1, "<span class=\"sp\"></span>"}, // 89
+	{"p ~ div + table", 1, "<table id=\"t\" class=\"\"></table>"}, // 90
+	{"table:empty", 1, "<table id=\"t\" class=\"\"></table>"}, // 148, 150
+	{"li:empty", 0, ""}, // 151, 152
 	{".\\31 \\33", 1, "<a class=\"13\" href=\"http://example.com\"></a>"}, // 175c
-	{"p.", -1, ""}, // 124
+	{"p.", -1, ""}, // 154
+	{".13", -1, ""}, // 155, 175a
+	{".\\13", 0, ""}, // 155a, 175b
 	{".a\\ bb\\ c", 0, ""}, // 155b
 	{".one.word", 0, ""}, // 155c
 	{".one\\.word", 1, "<div class=\"one.word\"></div>"}, // 155d
@@ -193,8 +218,8 @@ int main(int argc, char **argv)
 				goto pass;
 			}
 			cerr << endl;
-			cerr << "Parse error: '" << vectors[i].s << "': " << ex.what() << endl;
-			cerr << "              ";
+			cerr << "Parse error: { " << vectors[i].s << " }: " << ex.what() << endl;
+			cerr << "               ";
 			for (int i = 1; i < ex.position(); i++) {
 				cerr << " ";
 			}
@@ -202,13 +227,13 @@ int main(int argc, char **argv)
 			return 1;
 		} catch (...) {
 			cerr << endl;
-			cerr << "Error parsing '" << vectors[i].s << "'" << endl;
+			cerr << "Error parsing { " << vectors[i].s << " }" << endl;
 			return 1;
 		}
 
 		if (vectors[i].n < 0) {
 			cerr << endl;
-			cerr << i << " (" << vectors[i].s << ") failed: " <<
+			cerr << i << " { " << vectors[i].s << " } failed: " <<
 				"Parse exception expected" << endl;
 			return 1;
 		}
@@ -220,7 +245,7 @@ int main(int argc, char **argv)
 
 		if (s.size() != (size_t)vectors[i].n) {
 			cerr << endl;
-			cerr << i << " (" << vectors[i].s << ") failed: " <<
+			cerr << i << " { " << vectors[i].s << " } failed: " <<
 				"Expected " << vectors[i].n << " results, got " <<
 				s.size() << ":" << endl << ss.str() << endl;
 			return 1;
@@ -228,13 +253,14 @@ int main(int argc, char **argv)
 
 		if (ss.str() != vectors[i].t) {
 			cerr << endl;
-			cerr << i << " (" << vectors[i].s << ") failed: " <<
+			cerr << i << " { " << vectors[i].s << " } failed: " <<
 				"Expected " << vectors[i].t << ", got " << ss.str() << endl;
 			return 1;
 		}
 
 pass:
-		cout << setw(2) << i << (i > 0 && (i+1) % 10 == 0 ? "\n" : " ");
+		cout << setw(2) << hex << i;
+		cout << (i > 0 && (i+1) % 16 == 0 ? "\n" : " ");
 		cout << flush;
 	}
 	cout << endl;
