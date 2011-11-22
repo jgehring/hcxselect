@@ -753,7 +753,7 @@ NodeSet select(const NodeSet &nodes, const std::string &expr)
 /*!
  * Constructs an empty selection.
  */
-Selector::Selector()
+Selection::Selection()
 {
 }
 
@@ -761,7 +761,7 @@ Selector::Selector()
  * Constructs a selection containing a whole tree and optionally
  * applies a selector.
  */
-Selector::Selector(const tree<HTMLNode> &tree, const std::string &expr)
+Selection::Selection(const tree<HTMLNode> &tree, const std::string &expr)
 {
 	NodeSet v = hcxselect::select(tree, expr);
 	insert(v.begin(), v.end());
@@ -771,7 +771,7 @@ Selector::Selector(const tree<HTMLNode> &tree, const std::string &expr)
  * Constructs a selection from a set of nodes and optionally 
  * applies a selector.
  */
-Selector::Selector(const NodeSet &nodes, const std::string &expr)
+Selection::Selection(const NodeSet &nodes, const std::string &expr)
 {
 	if (!expr.empty()) {
 		NodeSet v = hcxselect::select(nodes, expr);
@@ -785,7 +785,7 @@ Selector::Selector(const NodeSet &nodes, const std::string &expr)
  * Returns a new selection by selecting elements from this 
  * selection using the given selector expression.
  */
-Selector Selector::select(const std::string &expr)
+Selection Selection::select(const std::string &expr)
 {
 	return hcxselect::select(*this, expr);
 }

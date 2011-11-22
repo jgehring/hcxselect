@@ -75,15 +75,17 @@ NodeSet select(const NodeSet &nodes, const std::string &expr);
 /*!
  * Convenient wrapper class for select().
  */
-class Selector : public NodeSet
+class Selection : public NodeSet
 {
 public:
-	Selector();
-	Selector(const tree<htmlcxx::HTML::Node> &tree, const std::string &expr = std::string());
-	Selector(const NodeSet &nodes, const std::string &expr = std::string());
+	Selection();
+	Selection(const tree<htmlcxx::HTML::Node> &tree, const std::string &expr = std::string());
+	Selection(const NodeSet &nodes, const std::string &expr = std::string());
 
-	Selector select(const std::string &expr);
+	Selection select(const std::string &expr);
 };
+
+typedef Selection Selector;
 
 
 /*!
