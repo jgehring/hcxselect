@@ -1,3 +1,11 @@
+2011-11-24  --  version 1.1
+
+	* Make sure nodes are always sorted by their occurrence in the document
+	* Renamed hcxselect::Selector to hcxselect::Selection (old name still
+	  available as typedef)
+	* Improved interface, now providing a Node typedef
+	* Improved documentation
+
 2011-11-11  --  version 1.0
 
 	* Initial release

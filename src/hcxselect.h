@@ -38,9 +38,9 @@
 #include <htmlcxx/html/Node.h>
 #include <htmlcxx/html/tree.h>
 
-#define HCXSELECT_VERSION_STR "1.0"
+#define HCXSELECT_VERSION_STR "1.1"
 #define HCXSELECT_VERSION_MAJOR 1
-#define HCXSELECT_VERSION_MINOR 0
+#define HCXSELECT_VERSION_MINOR 1
 #define HCXSELECT_VERSION_RELEASE 0
 
 
