@@ -5,12 +5,12 @@
     <meta name="keywords" content="CSS selector, CSS selector engine, selector, htmlcxx, tree.hh, HTML, C++, hcxselect, tree" />
     <link href="stylesheet.css" rel="stylesheet" type="text/css" />
 
-    <title>hcxselect - A CSS selector engine for htmlcxx</title>
+    <title>hcxselect - A CSS selector engine for C++</title>
 
   </head>
 
   <body>
-    <h2>hcxselect - A CSS selector engine for htmlcxx</h2>
+    <h2>hcxselect - A CSS selector engine for C++</h2>
 
     <div class="body">
       <div class="sflogo">
@@ -31,10 +31,30 @@
       <div class="main">
         <hr />
         <a name="about"><h3>About</h3></a>
-        <p>hcxselect is a small CSS selector engine for
-        <a href="http://htmlcxx.sourceforge.net">htmlcxx</a>. It parses
-        CSS selector expressions and applies them to a set of trees of HTML
-        nodes parsed via htmlcxx.</p>
+        <p>hcxselect is a small and fast CSS selector engine for
+        C++. It parses CSS selector expressions and applies them
+        to a set of document nodes (or a whole tree) parsed via <a
+        href="http://htmlcxx.sourceforge.net">htmlcxx</a>, a simple
+        non-validating HTML parser. Thus, it allows you to use CSS
+        selectors in your C++ program without much bloat.</p>
+
+        <p>For usage informations, please refer to the <a
+        href="doc/">reference documentation</a> which also contains a simple
+        <a href="doc/select_8cpp-example.html">usage example</a> with
+        detailed explanations.</a></p>
+
+        <h4>Feature overview</h4>
+        <ul>
+          <li>Supports most of the
+          <a href="http://www.w3.org/TR/selectors/">Selectors Level 3 specification</a>.
+          Browser-specific selectors like <tt>::visited</tt> are excluded,
+          though.
+          </li>
+          <li>Addditional pseudo-classes: <tt>:text</tt> and <tt>:comment</tt></li>
+          <li>Small and concise <a href="doc/namespacehcxselect.html">interface</a></li>
+          <li>Extensively unit-tested</li>
+          <li>Liberal license (3-clause BSD)</li>
+        </ul>
 
         <hr />
         <a name="news"><h3>News</h3></a>
