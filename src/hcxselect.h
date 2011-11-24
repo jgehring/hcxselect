@@ -45,10 +45,14 @@
 namespace hcxselect
 {
 
+struct NodeComp {
+	bool operator()(tree_node_<htmlcxx::HTML::Node> *a, tree_node_<htmlcxx::HTML::Node> *b) const;
+};
+
 /*!
  * Convenience type for a set of nodes.
  */
-typedef std::set<tree_node_<htmlcxx::HTML::Node> *> NodeSet;
+typedef std::set<tree_node_<htmlcxx::HTML::Node> *, NodeComp> NodeSet;
 
 
 /*!

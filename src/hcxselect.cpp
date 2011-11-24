@@ -713,6 +713,16 @@ NodeSet match(const NodeSet &nodes, const SelectorFn *fn)
 } // Anonymous namespace
 
 
+/*!
+ * Checks if node \p a < node \p b by comparing their positions in the document.
+ */
+bool NodeComp::operator()(tree_node_<HTMLNode> *a, tree_node_<HTMLNode> *b) const {
+	if (a == NULL || b == NULL) {
+		return a < b;
+	}
+	return a->data.offset() < b->data.offset();
+}
+
 // Applies a CSS selector expression to a document tree.
 NodeSet select(const tree<HTMLNode> &tree, const std::string &expr)
 {
