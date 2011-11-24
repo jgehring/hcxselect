@@ -45,14 +45,26 @@
 namespace hcxselect
 {
 
+/*!
+ * \class hcxselect::Node
+ * Conenient typedef for \p tree_node_<htmlcxx::HTML::Node>.
+ */
+typedef tree_node_<htmlcxx::HTML::Node> Node;
+
+/*!
+ * Comparison class for nodes.
+ */
 struct NodeComp {
-	bool operator()(tree_node_<htmlcxx::HTML::Node> *a, tree_node_<htmlcxx::HTML::Node> *b) const;
+	bool operator()(Node *a, Node *b) const;
 };
 
 /*!
- * Convenience type for a set of nodes.
+ * \class hcxselect::NodeSet
+ * Custom type for a set of nodes.
+ * This is actually a typedef for a \p std::set with the correct item and
+ * comparison templates.
  */
-typedef std::set<tree_node_<htmlcxx::HTML::Node> *, NodeComp> NodeSet;
+typedef std::set<Node *, NodeComp> NodeSet;
 
 
 /*!
