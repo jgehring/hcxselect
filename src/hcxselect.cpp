@@ -771,7 +771,7 @@ Selection::Selection()
  * Constructs a selection containing a whole tree and optionally
  * applies a selector.
  */
-Selection::Selection(const tree<HTMLNode> &tree, const std::string &expr)
+Selection::Selection(const tree<htmlcxx::HTML::Node> &tree, const std::string &expr)
 {
 	NodeSet v = hcxselect::select(tree, expr);
 	insert(v.begin(), v.end());

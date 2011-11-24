@@ -90,6 +90,9 @@ NodeSet select(const NodeSet &nodes, const std::string &expr);
 
 /*!
  * Convenient wrapper class for select().
+ * This is a subclass of NodeSet, providing convenient constructors
+ * and a select() member function. This allows for chaining of different
+ * selectors.
  */
 class Selection : public NodeSet
 {
