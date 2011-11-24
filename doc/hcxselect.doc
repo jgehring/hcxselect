@@ -18,8 +18,8 @@ parsed via htmlcxx.
 
 The interface of hcxselect is very minimalistic, and using it should
 be quite straightforward if you're familiar with C++ and htmlcxx.
-\ref example_select "A short example" is provided, including a short
-walk-through.
+<a href="select_8cpp-example.html">A short example</a> is provided,
+including a short walk-through.
 
 The library consists of a header and a source file and is currently
 meant to be directly included in other software, as it provides no
