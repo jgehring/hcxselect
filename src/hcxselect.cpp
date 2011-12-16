@@ -770,6 +770,10 @@ Selection::Selection()
 /*!
  * Constructs a selection containing a whole tree and optionally
  * applies a selector.
+ *
+ * \param tree The HTML tree
+ * \param expr The CSS selector expression
+ * \throws ParseException CSS selector parsing error
  */
 Selection::Selection(const tree<htmlcxx::HTML::Node> &tree, const std::string &expr)
 {
@@ -780,6 +784,10 @@ Selection::Selection(const tree<htmlcxx::HTML::Node> &tree, const std::string &e
 /*!
  * Constructs a selection from a set of nodes and optionally 
  * applies a selector.
+ *
+ * \param nodes The set of nodes
+ * \param expr The CSS selector expression
+ * \throws ParseException CSS selector parsing error
  */
 Selection::Selection(const NodeSet &nodes, const std::string &expr)
 {
@@ -794,6 +802,10 @@ Selection::Selection(const NodeSet &nodes, const std::string &expr)
 /*!
  * Returns a new selection by selecting elements from this 
  * selection using the given selector expression.
+ *
+ * \param expr The CSS selector expression
+ * \returns A new selection of elements matching the given selector
+ * \throws ParseException CSS selector parsing error
  */
 Selection Selection::select(const std::string &expr)
 {

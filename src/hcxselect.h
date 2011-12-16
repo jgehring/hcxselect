@@ -74,21 +74,21 @@ typedef std::set<Node *, NodeComp> NodeSet;
 
 /*!
  * Applies a CSS selector expression to a whole HTML tree.
- * \note May throw a ParseException.
  *
  * \param tree The HTML tree
  * \param expr The CSS selector expression
  * \returns A set of nodes that matches the given selector
+ * \throws ParseException CSS selector parsing error
  */
 NodeSet select(const tree<htmlcxx::HTML::Node> &tree, const std::string &expr);
 
 /*!
  * Applies a CSS selector expression to a set of nodes.
- * \note May throw a ParseException.
  *
  * \param nodes The set of nodes
  * \param expr The CSS selector expression
  * \returns A set of nodes that matches the given selector
+ * \throws ParseException CSS selector parsing error
  */
 NodeSet select(const NodeSet &nodes, const std::string &expr);
 
